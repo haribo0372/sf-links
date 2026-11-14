@@ -1,19 +1,18 @@
 package ru.osipov.sf.links.services;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import java.nio.file.Path;
+import java.util.Optional;
+import java.util.Properties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import ru.osipov.sf.links.config.ApplicationConfig;
 import ru.osipov.sf.links.models.User;
 import ru.osipov.sf.links.services.impl.AuthServiceImpl;
-
-import java.nio.file.Path;
-import java.util.Optional;
-import java.util.Properties;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class AuthServiceImplTest {
 

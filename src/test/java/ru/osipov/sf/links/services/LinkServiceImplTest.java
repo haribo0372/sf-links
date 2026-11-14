@@ -1,21 +1,20 @@
 package ru.osipov.sf.links.services;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import ru.osipov.sf.links.config.ApplicationConfig;
 import ru.osipov.sf.links.models.Link;
 import ru.osipov.sf.links.services.impl.LinkServiceImpl;
-
-import java.nio.file.Path;
-import java.time.LocalDateTime;
-import java.util.Optional;
-import java.util.Properties;
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class LinkServiceImplTest {
 

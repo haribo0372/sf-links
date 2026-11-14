@@ -1,11 +1,9 @@
 package ru.osipov.sf.links.models;
 
-import org.junit.jupiter.api.Test;
-
-import java.time.LocalDateTime;
-import java.util.UUID;
-
 import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.UUID;
+import org.junit.jupiter.api.Test;
 
 class UserTest {
 

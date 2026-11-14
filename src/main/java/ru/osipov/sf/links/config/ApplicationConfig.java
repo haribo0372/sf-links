@@ -1,10 +1,9 @@
 package ru.osipov.sf.links.config;
 
-import lombok.Getter;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+import lombok.Getter;
 
 @Getter
 public class ApplicationConfig {
