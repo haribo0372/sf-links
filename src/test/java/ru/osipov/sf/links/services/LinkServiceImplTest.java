@@ -18,7 +18,8 @@ import ru.osipov.sf.links.services.impl.LinkServiceImpl;
 
 class LinkServiceImplTest {
 
-  @TempDir Path tempDir;
+  @TempDir
+  Path tempDir;
 
   private ObjectMapper mapper;
   private ApplicationConfig config;
@@ -58,17 +59,19 @@ class LinkServiceImplTest {
   void save_setsExpiresAtFromTtl() {
     Link link = service.save("https://example.com", 5, userId);
 
-    assertThat(link.getExpiresAt()).isEqualTo(link.getCreatedAt().plusSeconds(60));
+    assertThat(link.getExpiresAt())
+      .isEqualTo(link.getCreatedAt().plusSeconds(60));
   }
 
   @Test
   void save_customTtl_applied() {
-    LinkServiceImpl custom =
-        new LinkServiceImpl(config(tempDir.resolve("links2.json").toString(), "3600"), mapper);
+    LinkServiceImpl custom = new LinkServiceImpl(
+      config(tempDir.resolve("links2.json").toString(), "3600"), mapper);
 
     Link link = custom.save("https://example.com", 5, userId);
 
-    assertThat(link.getExpiresAt()).isEqualTo(link.getCreatedAt().plusSeconds(3600));
+    assertThat(link.getExpiresAt())
+      .isEqualTo(link.getCreatedAt().plusSeconds(3600));
   }
 
   @Test
@@ -101,52 +104,55 @@ class LinkServiceImplTest {
   void save_persistsLink_reloadFromFile() {
     Link link = service.save("https://example.com", 5, userId);
 
-    LinkServiceImpl reloaded =
-        new LinkServiceImpl(config(tempDir.resolve("links.json").toString(), "60"), mapper);
+    LinkServiceImpl reloaded = new LinkServiceImpl(
+      config(tempDir.resolve("links.json").toString(), "60"), mapper);
 
     assertThat(reloaded.findByCode(link.getCode())).isPresent();
     assertThat(reloaded.findByCode(link.getCode()).orElseThrow().getUrl())
-        .isEqualTo("https://example.com");
+      .isEqualTo("https://example.com");
   }
 
   @Test
-  void update_owner_changesUrl() {
+  void update_owner_changesUrlAndLimit() {
     Link link = service.save("https://old.com", 5, userId);
 
-    service.update(link.getCode(), "https://new.com", userId);
+    service.update(link.getCode(), "https://new.com", 10, userId);
 
-    assertThat(service.findByCode(link.getCode()).orElseThrow().getUrl())
-        .isEqualTo("https://new.com");
+    Link updated = service.findByCode(link.getCode()).orElseThrow();
+    assertThat(updated.getUrl()).isEqualTo("https://new.com");
+    assertThat(updated.getMaxRedirect()).isEqualTo(10);
   }
 
   @Test
-  void update_notOwner_keepsUrl() {
+  void update_notOwner_keepsLinkUnchanged() {
     Link link = service.save("https://old.com", 5, userId);
     UUID stranger = UUID.randomUUID();
 
-    service.update(link.getCode(), "https://new.com", stranger);
+    service.update(link.getCode(), "https://new.com", 10, stranger);
 
-    assertThat(service.findByCode(link.getCode()).orElseThrow().getUrl())
-        .isEqualTo("https://old.com");
+    Link unchanged = service.findByCode(link.getCode()).orElseThrow();
+    assertThat(unchanged.getUrl()).isEqualTo("https://old.com");
+    assertThat(unchanged.getMaxRedirect()).isEqualTo(5);
   }
 
   @Test
   void update_unknownCode_doesNothing() {
-    service.update("missing", "https://new.com", userId);
+    service.update("missing", "https://new.com", 10, userId);
 
     assertThat(service.findByCode("missing")).isEmpty();
   }
 
   @Test
-  void update_persistsChange_reloadFromFile() {
+  void update_persistsChanges_reloadFromFile() {
     Link link = service.save("https://old.com", 5, userId);
-    service.update(link.getCode(), "https://new.com", userId);
+    service.update(link.getCode(), "https://new.com", 10, userId);
 
-    LinkServiceImpl reloaded =
-        new LinkServiceImpl(config(tempDir.resolve("links.json").toString(), "60"), mapper);
+    LinkServiceImpl reloaded = new LinkServiceImpl(
+      config(tempDir.resolve("links.json").toString(), "60"), mapper);
 
-    assertThat(reloaded.findByCode(link.getCode()).orElseThrow().getUrl())
-        .isEqualTo("https://new.com");
+    Link loaded = reloaded.findByCode(link.getCode()).orElseThrow();
+    assertThat(loaded.getUrl()).isEqualTo("https://new.com");
+    assertThat(loaded.getMaxRedirect()).isEqualTo(10);
   }
 
   @Test
@@ -156,7 +162,8 @@ class LinkServiceImplTest {
     Optional<String> result = service.redirectByCode(link.getCode(), userId);
 
     assertThat(result).contains("https://example.com");
-    assertThat(service.findByCode(link.getCode()).orElseThrow().getCurrentRedirects()).isEqualTo(1);
+    assertThat(service.findByCode(link.getCode()).orElseThrow().getCurrentRedirects())
+      .isEqualTo(1);
   }
 
   @Test
@@ -166,7 +173,8 @@ class LinkServiceImplTest {
     Optional<String> result = service.redirectByCode(link.getCode(), userId);
 
     assertThat(result).contains("https://example.com");
-    assertThat(service.findByCode(link.getCode()).orElseThrow().getCurrentRedirects()).isEqualTo(1);
+    assertThat(service.findByCode(link.getCode()).orElseThrow().getCurrentRedirects())
+      .isEqualTo(1);
   }
 
   @Test
@@ -236,8 +244,8 @@ class LinkServiceImplTest {
     Link link = service.save("https://example.com", 5, userId);
     service.remove(link.getCode(), userId);
 
-    LinkServiceImpl reloaded =
-        new LinkServiceImpl(config(tempDir.resolve("links.json").toString(), "60"), mapper);
+    LinkServiceImpl reloaded = new LinkServiceImpl(
+      config(tempDir.resolve("links.json").toString(), "60"), mapper);
 
     assertThat(reloaded.findByCode(link.getCode())).isEmpty();
   }

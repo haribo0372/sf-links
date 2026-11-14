@@ -54,11 +54,12 @@ public class LinkServiceImpl implements LinkService {
   }
 
   @Override
-  public void update(String code, String url, UUID userId) {
+  public void update(String code, String url, Integer limitRedirect, UUID userId) {
     try {
       Link link = this.findByCode(code).orElseThrow(() -> new LinkNotFoundException(code));
       checkAccessByUserId(link, userId);
       link.setUrl(url);
+      link.setMaxRedirect(limitRedirect);
       FileUtils.save(linkFile, mapper, links);
       System.out.printf("Ссылка с code='%s' успешно обновлена%n", code);
     } catch (BaseException e) {

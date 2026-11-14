@@ -141,7 +141,8 @@ public class SfLinksApplication {
   private static void doUpdate() {
     String code = readCodeFromConsole();
     String url = readHttpsFromConsole("Введите новую ссылку (https): ");
-    linkService.update(code, url, currentUser.getUuid());
+    Integer limit = ScannerInUtils.readInteger("Укажите новый лимит переходов: ");
+    linkService.update(code, url, limit, currentUser.getUuid());
   }
 
   private static void doRemove() {

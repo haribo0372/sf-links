@@ -8,7 +8,7 @@ public interface LinkService {
 
   Link save(String url, Integer limitRedirect, UUID userId);
 
-  void update(String code, String url, UUID userId);
+  void update(String code, String url, Integer limitRedirect, UUID userId);
 
   Optional<Link> findByCode(String code);
 
