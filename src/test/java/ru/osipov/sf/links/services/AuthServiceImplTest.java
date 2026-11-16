@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.nio.file.Path;
 import java.util.Optional;
-import java.util.Properties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -30,11 +29,7 @@ class AuthServiceImplTest {
   }
 
   private ApplicationConfig config(String userFilePath) {
-    Properties p = new Properties();
-    p.setProperty("files.user", userFilePath);
-    p.setProperty("files.link", tempDir.resolve("links.json").toString());
-    p.setProperty("link.ttl", "60");
-    return new ApplicationConfig(p);
+    return new ApplicationConfig(userFilePath, tempDir.resolve("links.json").toString(), 60);
   }
 
   @Test

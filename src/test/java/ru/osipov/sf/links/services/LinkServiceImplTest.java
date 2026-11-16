@@ -7,7 +7,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,17 +27,13 @@ class LinkServiceImplTest {
   @BeforeEach
   void setUp() {
     mapper = new ObjectMapper().registerModule(new JavaTimeModule());
-    config = config(tempDir.resolve("links.json").toString(), "60");
+    config = config(tempDir.resolve("links.json").toString(), 60);
     service = new LinkServiceImpl(config, mapper);
     userId = UUID.randomUUID();
   }
 
-  private ApplicationConfig config(String linkFile, String ttl) {
-    Properties p = new Properties();
-    p.setProperty("files.user", tempDir.resolve("users.json").toString());
-    p.setProperty("files.link", linkFile);
-    p.setProperty("link.ttl", ttl);
-    return new ApplicationConfig(p);
+  private ApplicationConfig config(String linkFile, long ttl) {
+    return new ApplicationConfig(tempDir.resolve("users.json").toString(), linkFile, ttl);
   }
 
   @Test
@@ -64,7 +59,7 @@ class LinkServiceImplTest {
   @Test
   void save_customTtl_applied() {
     LinkServiceImpl custom =
-        new LinkServiceImpl(config(tempDir.resolve("links2.json").toString(), "3600"), mapper);
+        new LinkServiceImpl(config(tempDir.resolve("links2.json").toString(), 3600), mapper);
 
     Link link = custom.save("https://example.com", 5, userId);
 
@@ -102,7 +97,7 @@ class LinkServiceImplTest {
     Link link = service.save("https://example.com", 5, userId);
 
     LinkServiceImpl reloaded =
-        new LinkServiceImpl(config(tempDir.resolve("links.json").toString(), "60"), mapper);
+        new LinkServiceImpl(config(tempDir.resolve("links.json").toString(), 60), mapper);
 
     assertThat(reloaded.findByCode(link.getCode())).isPresent();
     assertThat(reloaded.findByCode(link.getCode()).orElseThrow().getUrl())
@@ -145,7 +140,7 @@ class LinkServiceImplTest {
     service.update(link.getCode(), "https://new.com", 10, userId);
 
     LinkServiceImpl reloaded =
-        new LinkServiceImpl(config(tempDir.resolve("links.json").toString(), "60"), mapper);
+        new LinkServiceImpl(config(tempDir.resolve("links.json").toString(), 60), mapper);
 
     Link loaded = reloaded.findByCode(link.getCode()).orElseThrow();
     assertThat(loaded.getUrl()).isEqualTo("https://new.com");
@@ -240,7 +235,7 @@ class LinkServiceImplTest {
     service.remove(link.getCode(), userId);
 
     LinkServiceImpl reloaded =
-        new LinkServiceImpl(config(tempDir.resolve("links.json").toString(), "60"), mapper);
+        new LinkServiceImpl(config(tempDir.resolve("links.json").toString(), 60), mapper);
 
     assertThat(reloaded.findByCode(link.getCode())).isEmpty();
   }

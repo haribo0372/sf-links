@@ -39,3 +39,4 @@ build/
 /link.json
 /user.json
 /src/main/resources/
+/.env
