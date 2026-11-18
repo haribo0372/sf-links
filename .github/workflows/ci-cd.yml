@@ -1,0 +1,68 @@
+name: CI-CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: Build, test and package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17 (with Maven cache)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Spotless check
+        run: mvn -B spotless:check
+
+      - name: Build and test
+        run: mvn -B -Pci verify
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-jar
+          path: target/*.jar
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: target/surefire-reports/
+          if-no-files-found: ignore
+
+  deploy:
+    name: Deploy (staging simulation)
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: app-jar
+          path: ./dist
+
+      - name: Show artifact
+        run: ls -la ./dist
+
+      - name: Deploy to staging
+        run: |
+          echo "Deploying ${{ github.sha }} to staging..."
+          echo "Artifact contents:"
+          ls -la ./dist
+          echo "Deployment finished successfully."
