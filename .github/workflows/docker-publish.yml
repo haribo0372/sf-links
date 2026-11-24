@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write        # нужно для push в GHCR через GITHUB_TOKEN
+      packages: write
 
     steps:
       - name: Checkout source
@@ -28,17 +28,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Генерация тегов и OCI-меток
       - name: Extract metadata (tags, labels)
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ghcr.io/${{ github.repository_owner }}/sf-links
           tags: |
-            type=ref,event=branch
             type=sha,prefix=sha-,format=short
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
             type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build and push
@@ -51,13 +47,12 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # Smoke-тест: скачиваем и запускаем образ без TTY
       - name: Smoke test published image
         run: |
           IMAGE=$(echo "${{ steps.meta.outputs.tags }}" | head -n1)
           echo "Pulling $IMAGE"
           docker pull "$IMAGE"
-          echo "exit" | docker run -i --rm \
+          echo "0" | docker run -i --rm \
             -e LINK_TTL=180 \
             -e FILE_LINK=/tmp/link.json \
             -e FILE_USER=/tmp/user.json \
