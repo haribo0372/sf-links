@@ -129,11 +129,10 @@ public class SfLinksApplication {
         .redirectByCode(readCodeFromConsole(), currentUser.getUuid())
         .ifPresent(
             url -> {
-              try {
-                Desktop.getDesktop().browse(new URI(url));
-                System.out.printf("Осуществлен переход по ссылке: %s", url);
-              } catch (IOException | URISyntaxException e) {
-                System.out.println("Не удалось открыть браузер: " + e.getMessage());
+              if (!tryOpenInBrowser(url)) {
+                System.out.printf("Открыть браузер не удалось. Ссылка: %s%n", url);
+              } else {
+                System.out.printf("Осуществлен переход по ссылке: %s%n", url);
               }
             });
   }
@@ -164,5 +163,18 @@ public class SfLinksApplication {
         title,
         ValidateUtils::isValidHttpsUrl,
         "Некорректная ссылка. Поддерживается только https, например: https://example.com/path");
+  }
+
+  private static boolean tryOpenInBrowser(String url) {
+    if (GraphicsEnvironment.isHeadless() || !Desktop.isDesktopSupported()) {
+      return false;
+    }
+    try {
+      Desktop.getDesktop().browse(new URI(url));
+      return true;
+    } catch (IOException | URISyntaxException | UnsupportedOperationException e) {
+      System.out.println("Не удалось открыть браузер: " + e.getMessage());
+      return false;
+    }
   }
 }

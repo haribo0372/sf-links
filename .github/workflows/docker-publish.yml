@@ -1,0 +1,64 @@
+name: Docker Publish (GHCR)
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*.*.*' ]
+  workflow_dispatch:
+
+jobs:
+  docker:
+    name: Build, tag and push image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write        # нужно для push в GHCR через GITHUB_TOKEN
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Генерация тегов и OCI-меток
+      - name: Extract metadata (tags, labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/sf-links
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix=sha-,format=short
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Smoke-тест: скачиваем и запускаем образ без TTY
+      - name: Smoke test published image
+        run: |
+          IMAGE=$(echo "${{ steps.meta.outputs.tags }}" | head -n1)
+          echo "Pulling $IMAGE"
+          docker pull "$IMAGE"
+          echo "exit" | docker run -i --rm \
+            -e LINK_TTL=180 \
+            -e FILE_LINK=/tmp/link.json \
+            -e FILE_USER=/tmp/user.json \
+            "$IMAGE"
