@@ -3,8 +3,7 @@ name: Docker Publish (GHCR)
 on:
   push:
     branches: [ main ]
-    tags: [ 'v*.*.*' ]
-  workflow_dispatch:
+  workflow_dispatch: # Для ручного "Run workflow" в UI github
 
 jobs:
   docker:
@@ -50,7 +49,7 @@ jobs:
       - name: Smoke test published image
         run: |
           IMAGE=$(echo "${{ steps.meta.outputs.tags }}" | head -n1)
-          echo "Pulling $IMAGE"
+          echo "pull $IMAGE"
           docker pull "$IMAGE"
           echo "0" | docker run -i --rm \
             -e LINK_TTL=180 \
