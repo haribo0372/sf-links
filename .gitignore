@@ -10,5 +10,4 @@ target/
 *.ipr
 
 test-*.json
-/src/main/resources/
 .env

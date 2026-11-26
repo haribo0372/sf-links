@@ -1,6 +1,17 @@
 target/
+
 .git/
 .github/
+.gitignore
+
 *.md
 .idea/
 *.iml
+build/
+.gradle/
+
+Dockerfile*
+README.md
+docker-compose*.yml
+test-*.json
+.env
